@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>មិត្តថ្មី · NewFriends</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff7f2;--card:#fff;--ink:#2a1f1c;--mute:#8a7a74;--pri:#e8553d;--pri2:#ff8a5c;--line:#f0e2da;--bub:#f4ebe5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--bg:#1b1412;--card:#271d1a;--ink:#f6ebe6;--mute:#b3a29b;--line:#3a2c27;--bub:#3a2c27}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:'Noto Sans Khmer',system-ui,sans-serif;display:flex;justify-content:center}
+#app{width:100%;max-width:440px;height:100%;display:flex;flex-direction:column;position:relative}
+header{padding:14px 18px;font-weight:700;font-size:20px;color:var(--pri);display:flex;justify-content:space-between;align-items:center;gap:8px}
+main{flex:1;overflow-y:auto;padding:0 16px 16px}
+nav{display:flex;border-top:1px solid var(--line);background:var(--card)}
+nav button{flex:1;padding:10px 0;border:0;background:none;color:var(--mute);font:inherit;font-size:12px;cursor:pointer}
+nav button.on{color:var(--pri);font-weight:700}
+nav span{display:block;font-size:20px}
+h2{margin:6px 0 4px}
+p.sub{color:var(--mute);margin:0 0 14px;font-size:14px}
+label{display:block;font-size:13px;color:var(--mute);margin:12px 0 4px}
+input,select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:7px 12px;border-radius:99px;border:1px solid var(--line);background:var(--card);font-size:14px;cursor:pointer;color:var(--ink)}
+.chip.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.btn{width:100%;padding:14px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;font:inherit;font-weight:700;font-size:16px;cursor:pointer;margin-top:18px}
+.btn.o{background:var(--card);color:var(--pri);border:1px solid var(--pri)}
+.btn:disabled{opacity:.6}
+.err{color:#d33;font-size:13px;margin-top:8px;min-height:18px}
+.pcard{background:var(--card);border-radius:22px;border:1px solid var(--line);overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.pic{height:260px;display:flex;align-items:center;justify-content:center;font-size:96px;background:var(--bub)}
+.pic img{width:100%;height:100%;object-fit:cover}
+.pinfo{padding:16px}
+.pinfo h3{margin:0 0 2px;font-size:22px}
+.acts{display:flex;justify-content:center;gap:14px;margin-top:16px}
+.acts button{width:56px;height:56px;border-radius:50%;border:1px solid var(--line);background:var(--card);font-size:24px;cursor:pointer}
+.row{display:flex;gap:12px;align-items:center;padding:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:10px;cursor:pointer}
+.av{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;flex:none;overflow:hidden;background:var(--bub)}
+.av img{width:100%;height:100%;object-fit:cover}
+.chat{display:flex;flex-direction:column;height:100%}
+.msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:6px 0}
+.m{max-width:78%;padding:9px 13px;border-radius:16px;background:var(--bub);align-self:flex-start;font-size:15px;word-break:break-word}
+.m.me{background:var(--pri);color:#fff;align-self:flex-end}
+.send{display:flex;gap:8px;padding-top:8px}
+.send button{width:48px;border:0;border-radius:12px;background:var(--pri);color:#fff;font-size:18px;cursor:pointer}
+.tools{display:flex;gap:6px;align-items:center}
+.tools button,.back{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:6px 10px;font:inherit;font-size:12px;cursor:pointer}
+.empty{text-align:center;color:var(--mute);padding:40px 10px}
+.toast{position:absolute;left:50%;top:70px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;font-size:14px;z-index:9;text-align:center;max-width:90%}
+.note{font-size:12px;color:var(--mute);background:var(--bub);padding:10px;border-radius:12px;margin-top:14px}
+</style>
+</head>
+<body>
+<div id="app"><header id="hd"></header><main id="mn"></main><nav id="nv"></nav></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.1/dist/umd/supabase.js"></script>
+<script>
+// ------------------------------------------------------------------ config (publishable key is safe to ship in the app)
+const SUPABASE_URL='https://mkgbmcsrwdygxotejzkq.supabase.co';
+const SUPABASE_KEY='sb_publishable_x16fUuryo7H-oRngHB2fFA_AGyDhjOg';
+
+// ------------------------------------------------------------------ data
+const INT=[['🎵','តន្ត្រី','Music'],['🎮','ហ្គេម','Games'],['✈️','ធ្វើដំណើរ','Travel'],['⚽','កីឡា','Sports'],['🍜','អាហារ','Food'],['🎬','ភាពយន្ត','Movies'],['📚','អាន','Reading'],['📸','ថតរូប','Photos']];
+const PROV=[['ភ្នំពេញ','Phnom Penh'],['បន្ទាយមានជ័យ','Banteay Meanchey'],['បាត់ដំបង','Battambang'],['កំពង់ចាម','Kampong Cham'],['កំពង់ឆ្នាំង','Kampong Chhnang'],['កំពង់ស្ពឺ','Kampong Speu'],['កំពង់ធំ','Kampong Thom'],['កំពត','Kampot'],['កណ្ដាល','Kandal'],['កែប','Kep'],['កោះកុង','Koh Kong'],['ក្រចេះ','Kratie'],['មណ្ឌលគិរី','Mondulkiri'],['ឧត្តរមានជ័យ','Oddar Meanchey'],['ប៉ៃលិន','Pailin'],['ព្រះសីហនុ','Preah Sihanouk'],['ព្រះវិហារ','Preah Vihear'],['ពោធិ៍សាត់','Pursat'],['រតនគិរី','Ratanakiri'],['សៀមរាប','Siem Reap'],['ស្ទឹងត្រែង','Stung Treng'],['ស្វាយរៀង','Svay Rieng'],['ព្រៃវែង','Prey Veng'],['តាកែវ','Takeo'],['ត្បូងឃ្មុំ','Tbong Khmum']];
+const GR=[['12','ថ្នាក់ទី១២','Grade 12'],['11','ថ្នាក់ទី១១','Grade 11'],['10','ថ្នាក់ទី១០','Grade 10'],['uni','និស្សិត','University'],['other','ផ្សេងៗ','Other']];
+const TXT={km:{
+app:'មិត្តថ្មី',pick:'ជ្រើសរើសភាសា',tagline:'រកមិត្តថ្មី',
+lg:'ចូលដោយលេខទូរស័ព្ទ',lgsub:'បញ្ចូលលេខទូរស័ព្ទរបស់អ្នកដើម្បីចូល ឬបង្កើតគណនី',phone:'លេខទូរស័ព្ទ',sendc:'ផ្ញើលេខកូដ',sentto:'បានផ្ញើលេខកូដទៅ',entercode:'បញ្ចូលលេខកូដ ៦ ខ្ទង់',verify:'ផ្ទៀងផ្ទាត់',resend:'ផ្ញើលេខកូដម្តងទៀត',changeNum:'← ប្តូរលេខទូរស័ព្ទ',ePhone:'លេខទូរស័ព្ទមិនត្រឹមត្រូវ (ឧ. 012 345 678)',eCode:'លេខកូដមិនត្រឹមត្រូវ',lgnote:'🔒 លេខទូរស័ព្ទរបស់អ្នកមិនត្រូវបានបង្ហាញដល់អ្នកដទៃឡើយ',
+welcome:'សូមស្វាគមន៍ 👋',wsub:'បង្កើតប្រូហ្វាលដើម្បីស្វែងរកមិត្តភក្តិថ្មី',photo:'ដាក់រូបប្រូហ្វាលរបស់អ្នក (ចាំបាច់)',name:'ឈ្មោះ',nameph:'ឈ្មោះរបស់អ្នក',uname:'ឈ្មោះអ្នកប្រើ (username) · a–z, 0–9, _ · ៣–២០តួ',dob:'ថ្ងៃខែឆ្នាំកំណើត (មិនអាចកែបានក្រោយចុះឈ្មោះ)',want:'ខ្ញុំចង់',gf:'🤝 រកមិត្តភក្តិ',gd:'💕 រកសង្សារ (សម្រាប់អាយុ ១៨ឆ្នាំឡើង)',gf2:'🤝 រកមិត្តភក្តិ',gd2:'💕 រកសង្សារ',prov:'ខេត្ត/ក្រុង',allprov:'ខេត្តទាំង ២៥',grade:'ថ្នាក់/កម្រិតសិក្សា',ints:'ចំណូលចិត្ត (ជ្រើសបានច្រើន)',start:'ចាប់ផ្តើម',
+safe:'🔒 អាយុ ១៣–១៧ ឆ្នាំ ត្រូវបានភ្ជាប់តែជាមួយអាយុ ១៣–១៧ ដូចគ្នា ហើយអាយុ ១៨ឆ្នាំឡើង ភ្ជាប់ជាមួយអាយុ ១៨ឆ្នាំឡើង។ កុំចែករំលែកព័ត៌មានផ្ទាល់ខ្លួន (អាសយដ្ឋាន លេខគណនីធនាគារ) ជាមួយអ្នកដែលមិនទាន់ស្គាល់។',
+ePhoto:'សូមដាក់រូបប្រូហ្វាលរបស់អ្នកជាមុន',eName:'សូមបញ្ចូលឈ្មោះ',eUser:'ឈ្មោះអ្នកប្រើត្រូវមាន ៣–២០តួ ប្រើតែ a–z លេខ 0–9 និង _',eUserTaken:'ឈ្មោះអ្នកប្រើនេះមានគេប្រើហើយ ឬមិនអនុញ្ញាត',eDob:'សូមជ្រើសថ្ងៃខែឆ្នាំកំណើត',eAge:'សូមអភ័យទោស App នេះសម្រាប់អ្នកអាយុ ១៣ឆ្នាំឡើងទៅប៉ុណ្ណោះ',eDate:'ការរកសង្សារសម្រាប់តែអាយុ ១៨ឆ្នាំឡើង។ សូមជ្រើស "រកមិត្តភក្តិ" ជំនួស',eInt:'សូមជ្រើសចំណូលចិត្តយ៉ាងហោចណាស់ ១',badimg:'មិនអាចបើករូបនេះបានទេ',
+n_discover:'ស្វែងរក',n_chats:'ឆាត',n_me:'ខ្ញុំ',usearch:'🔎 ស្វែងរកតាម @username (ចុច Enter)',common:'ចំណូលចិត្តដូចគ្នា',
+done:'😊<br>មិនមានអ្នកប្រើក្នុងបញ្ជីទេ<br>សូមសាកខេត្តផ្សេង ឬត្រឡប់មកវិញពេលក្រោយ',loading:'កំពុងផ្ទុក...',
+msgs:'សារ',nochat:'💬<br>មិនទាន់មានការឆាតទេ<br>ចូលទៅ "ស្វែងរក" ដើម្បីរកមិត្តថ្មី',report:'រាយការណ៍',block:'ទប់ស្កាត់',typemsg:'សរសេរសារ...',reported:'✅ បានទទួលការរាយការណ៍',blocked:'🚫 បានទប់ស្កាត់',unblock:'ដោះទប់ស្កាត់',unblocked:'✅ បានដោះទប់ស្កាត់',blockedList:'អ្នកដែលបានទប់ស្កាត់',confirmBlock:'ទប់ស្កាត់អ្នកនេះ?',
+hlink:'[តំណត្រូវបានលាក់]',hnum:'[លេខត្រូវបានលាក់]',scrubbed:'⚠️ លេខទូរស័ព្ទ/តំណ ត្រូវបានលាក់ដើម្បីសុវត្ថិភាព',
+lang:'🌐 ភាសា',logout:'ចាកចេញ',member:'សមាជិក',welcomeback:'👋 សូមស្វាគមន៍ត្រឡប់មកវិញ!'},
+en:{
+app:'NewFriends',pick:'Choose your language',tagline:'Make new friends',
+lg:'Log in with phone number',lgsub:'Enter your phone number to log in or create an account',phone:'Phone number',sendc:'Send code',sentto:'Code sent to',entercode:'Enter the 6-digit code',verify:'Verify',resend:'Resend code',changeNum:'← Change phone number',ePhone:'Invalid phone number (e.g. 012 345 678)',eCode:'Incorrect code',lgnote:'🔒 Your phone number is never shown to other users',
+welcome:'Welcome 👋',wsub:'Create a profile to meet new people',photo:'Add your profile photo (required)',name:'Name',nameph:'Your name',uname:'Username · a–z, 0–9, _ · 3–20 characters',dob:'Date of birth (cannot be changed after sign-up)',want:'I want to',gf:'🤝 Find friends',gd:'💕 Find a partner (18+ only)',gf2:'🤝 Friends',gd2:'💕 Partner',prov:'Province / City',allprov:'All 25 provinces',grade:'Grade / study level',ints:'Interests (choose any)',start:'Get started',
+safe:'🔒 Users aged 13–17 are only matched with other 13–17s, and users 18+ only with 18+. Never share personal information (address, bank details) with people you don\'t know.',
+ePhoto:'Please add your profile photo first',eName:'Please enter your name',eUser:'Username must be 3–20 characters: a–z, 0–9 and _ only',eUserTaken:'This username is already taken or not allowed',eDob:'Please choose your date of birth',eAge:'Sorry, this app is only for people aged 13 and over',eDate:'Finding a partner is for 18+ only. Please choose "Find friends" instead',eInt:'Please choose at least 1 interest',badimg:'Can\'t open this image',
+n_discover:'Discover',n_chats:'Chats',n_me:'Me',usearch:'🔎 Search by @username (press Enter)',common:'shared interests',
+done:'😊<br>No more people to show<br>Try another province or come back later',loading:'Loading...',
+msgs:'Messages',nochat:'💬<br>No chats yet<br>Go to "Discover" to meet new friends',report:'Report',block:'Block',typemsg:'Type a message...',reported:'✅ Report received',blocked:'🚫 Blocked',unblock:'Unblock',unblocked:'✅ Unblocked',blockedList:'Blocked users',confirmBlock:'Block this person?',
+hlink:'[link hidden]',hnum:'[number hidden]',scrubbed:'⚠️ Phone numbers/links are hidden for safety',
+lang:'🌐 Language',logout:'Log out',member:'Member',welcomeback:'👋 Welcome back!'}};
+
+// ------------------------------------------------------------------ helpers
+Object.assign(TXT.km,{tabPhone:'📱 លេខទូរស័ព្ទ',tabEmail:'✉️ អ៊ីមែល',lg2:'ចូលដោយអ៊ីមែល',email:'អ៊ីមែល',pass:'ពាក្យសម្ងាត់ (យ៉ាងតិច ៦តួ)',login:'ចូល',signup:'បង្កើតគណនី',eEmail:'អ៊ីមែលមិនត្រឹមត្រូវ',ePass:'ពាក្យសម្ងាត់ត្រូវមានយ៉ាងតិច ៦តួ',checkEmail:'📧 សូមពិនិត្យអ៊ីមែលរបស់អ្នក ហើយចុចតំណបញ្ជាក់ បន្ទាប់មកចូលម្តងទៀត'});
+Object.assign(TXT.en,{tabPhone:'📱 Phone',tabEmail:'✉️ Email',lg2:'Log in with email',email:'Email',pass:'Password (min 6 characters)',login:'Log in',signup:'Create account',eEmail:'Invalid email address',ePass:'Password must be at least 6 characters',checkEmail:'📧 Check your email and click the confirmation link, then log in again'});
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+if(!window.supabase){document.body.innerHTML='<p style="padding:24px;font-family:sans-serif">Cannot load the Supabase library. Please check your internet connection and reload.</p>'}
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const S={lang:localStorage.getItem('nf_lang'),tab:'discover',uid:null,me:null,people:null,idx:0,q:'',fp:'',chats:null,open:null,msgs:[],sel:[],blocked:null,otp:false,phone:'',blob:null};
+let CH=null;
+const LI=()=>S.lang==='en'?1:0;
+const t=k=>TXT[S.lang==='en'?'en':'km'][k];
+const pl=i=>PROV[i][LI()];
+const il=i=>INT[i][0]+' '+INT[i][LI()+1];
+const grl=g=>{const x=GR.find(r=>r[0]===g);return x?x[LI()+1]:''};
+const goal=g=>g==='date'?t('gd2'):t('gf2');
+function toast(m){const d=document.createElement('div');d.className='toast';d.textContent=m;$('app').appendChild(d);setTimeout(()=>d.remove(),2400)}
+function ageOf(d){const b=new Date(d),n=new Date();let a=n.getFullYear()-b.getFullYear();const m=n.getMonth()-b.getMonth();if(m<0||(m===0&&n.getDate()<b.getDate()))a--;return a}
+function scrub(s){const c=s.replace(/https?:\/\/\S+|www\.\S+/gi,t('hlink')).replace(/\+?\d[\d\s-]{6,}\d/g,t('hnum'));if(c!==s)toast(t('scrubbed'));return c}
+function normPhone(v){let d=v.replace(/\D/g,'');if(d.startsWith('855'))d=d.slice(3);if(d.startsWith('0'))d=d.slice(1);return /^[1-9]\d{7,8}$/.test(d)?d:null}
+const URLS={};
+async function sign(paths){
+ const need=[...new Set(paths.filter(p=>p&&!URLS[p]))];
+ if(!need.length)return;
+ const {data}=await sb.storage.from('media').createSignedUrls(need,3600);
+ (data||[]).forEach(d=>{if(d.path&&d.signedUrl)URLS[d.path]=d.signedUrl});
+}
+const avatar=(p,cls)=>`<div class="${cls||'av'}">${p&&URLS[p.photo_path]?`<img src="${URLS[p.photo_path]}" alt="">`:'🙂'}</div>`;
+function resize(file,size,cb){
+ const r=new FileReader();
+ r.onload=()=>{const im=new Image();
+  im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=size;const s=Math.min(im.width,im.height);c.getContext('2d').drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,size,size);c.toBlob(b=>cb(b,c.toDataURL('image/jpeg',.8)),'image/jpeg',.8)};
+  im.onerror=()=>toast(t('badimg'));im.src=r.result};
+ r.readAsDataURL(file);
+}
+function setLang(l){S.lang=l;localStorage.setItem('nf_lang',l);render()}
+
+// ------------------------------------------------------------------ session
+async function init(){
+ sb.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT'){leaveChat();Object.assign(S,{uid:null,me:null,people:null,chats:null,open:null,blocked:null,otp:false,tab:'discover'});render()}});
+ const {data}=await sb.auth.getSession();
+ if(data&&data.session)await afterLogin(data.session.user);
+ render();
+ if(S.me)go('discover');
+}
+async function afterLogin(user){
+ S.uid=user.id;
+ const {data}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
+ S.me=data||null;
+ if(S.me)await sign([S.me.photo_path]);
+}
+
+// ------------------------------------------------------------------ render
+function render(){
+ const hd=$('hd'),mn=$('mn'),nv=$('nv');
+ if(!S.lang){hd.textContent='💬 មិត្តថ្មី · NewFriends';nv.innerHTML='';mn.innerHTML='<h2 style="text-align:center;margin-top:40px;line-height:1.7">🌐<br>ជ្រើសរើសភាសា<br>Choose your language</h2><button class="btn" onclick="setLang(\'km\')">🇰🇭 ខ្មែរ</button><button class="btn o" onclick="setLang(\'en\')">🇬🇧 English</button>';return}
+ document.documentElement.lang=S.lang==='en'?'en':'km';
+ hd.textContent='💬 '+t('app');
+ if(!S.uid){nv.innerHTML='';return loginView(mn)}
+ if(!S.me){nv.innerHTML='';return onboardView(mn)}
+ nv.innerHTML=[['discover','🔍'],['chats','💬'],['me','👤']].map(([k,i])=>`<button class="${S.tab===k&&!S.open?'on':''}" onclick="go('${k}')"><span>${i}</span>${t('n_'+k)}</button>`).join('');
+ if(S.open)return chatView(hd,mn);
+ ({discover:discoverView,chats:chatsView,me:meView})[S.tab](mn);
+}
+async function go(k){
+ S.tab=k;S.open=null;leaveChat();render();
+ try{
+  if(k==='discover')await loadPeople();
+  if(k==='chats')await loadChats();
+  if(k==='me')await loadBlocked();
+ }catch(e){toast(e.message)}
+}
+
+// ------------------------------------------------------------------ login (phone OTP)
+function phoneView(mn){
+ if(!S.otp){
+  mn.innerHTML=`<h2>📱 ${t('lg')}</h2><p class="sub">${t('lgsub')}</p><label>${t('phone')}</label><div style="display:flex;gap:8px"><div class="chip" style="align-self:center;cursor:default;white-space:nowrap">🇰🇭 +855</div><input id="ph0" type="tel" inputmode="numeric" maxlength="12" placeholder="12 345 678" onkeydown="if(event.key==='Enter')sendOtp()"></div><div class="err" id="er"></div><button class="btn" id="bt" onclick="sendOtp()">${t('sendc')}</button><div class="note">${t('lgnote')}</div>`;
+  return;
+ }
+ mn.innerHTML=`<h2>📱 ${t('lg')}</h2><p class="sub">${t('sentto')} ${esc(S.phone)}</p><label>${t('entercode')}</label><input id="otp" type="tel" inputmode="numeric" maxlength="6" placeholder="••••••" onkeydown="if(event.key==='Enter')verifyOtp()"><div class="err" id="er"></div><button class="btn" id="bt" onclick="verifyOtp()">${t('verify')}</button><button class="btn o" onclick="sendOtp(true)">${t('resend')}</button><button class="back" style="margin-top:12px" onclick="S.otp=false;render()">${t('changeNum')}</button>`;
+}
+function loginView(mn){
+ if(S.lm==='email')emailView(mn);else phoneView(mn);
+ if(S.lm==='email'||!S.otp)mn.insertAdjacentHTML('afterbegin',`<div style="display:flex;gap:8px;margin-bottom:8px"><button class="btn ${S.lm==='email'?'o':''}" style="margin:0;padding:10px" onclick="S.lm='phone';render()">${t('tabPhone')}</button><button class="btn ${S.lm==='email'?'':'o'}" style="margin:0;padding:10px" onclick="S.lm='email';render()">${t('tabEmail')}</button></div>`);
+}
+function emailView(mn){
+ mn.innerHTML=`<h2>✉️ ${t('lg2')}</h2><label>${t('email')}</label><input id="em" type="email" autocapitalize="none" autocomplete="email" placeholder="you@example.com"><label>${t('pass')}</label><input id="pw" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')emailAuth(false)"><div class="err" id="er"></div><button class="btn" id="bt" onclick="emailAuth(false)">${t('login')}</button><button class="btn o" onclick="emailAuth(true)">${t('signup')}</button><div class="note">${t('lgnote').replace(/📱|ទូរស័ព្ទ|phone number/g,'')}</div>`;
+}
+async function emailAuth(signup){
+ const email=$('em').value.trim(),password=$('pw').value,er=$('er');
+ if(!/^\S+@\S+\.\S+$/.test(email)){er.textContent=t('eEmail');return}
+ if(password.length<6){er.textContent=t('ePass');return}
+ const r=signup?await sb.auth.signUp({email,password}):await sb.auth.signInWithPassword({email,password});
+ if(r.error){er.textContent=r.error.message;return}
+ if(!r.data.session){er.textContent='';toast(t('checkEmail'));return}
+ await afterLogin(r.data.user);render();
+ if(S.me){toast(t('welcomeback'));go('discover')}
+}
+async function sendOtp(re){
+ if(!re){const d=normPhone($('ph0').value);if(!d){$('er').textContent=t('ePhone');return}S.phone='+855'+d}
+ const bt=$('bt');if(bt)bt.disabled=true;
+ const {error}=await sb.auth.signInWithOtp({phone:S.phone});
+ if(bt)bt.disabled=false;
+ if(error){const e=$('er');if(e)e.textContent=error.message;else toast(error.message);return}
+ S.otp=true;render();
+}
+async function verifyOtp(){
+ const token=$('otp').value.trim();
+ const bt=$('bt');bt.disabled=true;
+ const {data,error}=await sb.auth.verifyOtp({phone:S.phone,token,type:'sms'});
+ bt.disabled=false;
+ if(error){$('er').textContent=t('eCode')+' ('+error.message+')';return}
+ S.otp=false;
+ await afterLogin(data.user);
+ render();
+ if(S.me){toast(t('welcomeback'));go('discover')}
+}
+
+// ------------------------------------------------------------------ onboarding (create profile)
+function onboardView(mn){
+ mn.innerHTML=`<h2>${t('welcome')}</h2><p class="sub">${t('wsub')}</p>
+ <div style="text-align:center"><div id="ph" class="av" onclick="$('fi').click()" style="width:104px;height:104px;margin:auto;font-size:38px;border:2px dashed var(--pri);cursor:pointer;background-position:center">📷</div><input type="file" id="fi" accept="image/*" hidden onchange="pickPhoto(this)"><div style="font-size:13px;color:var(--mute);margin-top:6px">${t('photo')}</div></div>
+ <label>${t('name')}</label><input id="nm" maxlength="20" placeholder="${t('nameph')}">
+ <label>${t('uname')}</label><input id="un" maxlength="20" placeholder="username" autocapitalize="none" autocomplete="off" spellcheck="false">
+ <label>${t('dob')}</label><input id="dob" type="date">
+ <label>${t('want')}</label><select id="gl"><option value="friend">${t('gf')}</option><option value="date">${t('gd')}</option></select>
+ <label>${t('prov')}</label><select id="pv">${PROV.map((x,i)=>`<option value="${i}">${x[LI()]}</option>`).join('')}</select>
+ <label>${t('grade')}</label><select id="gr">${GR.map(r=>`<option value="${r[0]}">${r[LI()+1]}</option>`).join('')}</select>
+ <label>${t('ints')}</label><div class="chips" id="ch"></div>
+ <div class="err" id="er"></div>
+ <button class="btn" id="bt" onclick="saveProfile()">${t('start')}</button>
+ <button class="back" style="margin-top:12px" onclick="sb.auth.signOut()">${t('logout')}</button>
+ <div class="note">${t('safe')}</div>`;
+ drawChips();
+}
+function drawChips(){$('ch').innerHTML=INT.map((x,i)=>`<span class="chip ${S.sel.includes(i)?'on':''}" onclick="tg(${i})">${il(i)}</span>`).join('')}
+function tg(i){S.sel=S.sel.includes(i)?S.sel.filter(x=>x!==i):[...S.sel,i];drawChips()}
+function pickPhoto(inp){const f=inp.files[0];if(!f)return;resize(f,480,(b,url)=>{S.blob=b;const h=$('ph');h.textContent='';h.style.backgroundImage=`url(${url})`;h.style.backgroundSize='cover';h.style.borderStyle='solid';$('er').textContent=''})}
+async function saveProfile(){
+ const e=m=>{$('er').textContent=t(m)};
+ const n=$('nm').value.trim(),u=$('un').value.trim().toLowerCase(),dob=$('dob').value,g=$('gl').value;
+ if(!S.blob)return e('ePhoto');
+ if(!n)return e('eName');
+ if(!/^[a-z0-9_]{3,20}$/.test(u))return e('eUser');
+ if(!dob)return e('eDob');
+ const a=ageOf(dob);
+ if(a<13)return e('eAge');
+ if(g==='date'&&a<18)return e('eDate');
+ if(!S.sel.length)return e('eInt');
+ const bt=$('bt');bt.disabled=true;
+ try{
+  const ok=await sb.rpc('username_available',{u});
+  if(ok.error)throw ok.error;
+  if(!ok.data){e('eUserTaken');bt.disabled=false;return}
+  const path=`${S.uid}/avatar-${Date.now()}.jpg`;
+  const up=await sb.storage.from('media').upload(path,S.blob,{contentType:'image/jpeg'});
+  if(up.error)throw up.error;
+  const ins=await sb.from('profiles').insert({id:S.uid,name:n,username:u,birth_date:dob,province:+$('pv').value,grade:$('gr').value,goal:g,interests:S.sel,photo_path:path}).select().single();
+  if(ins.error)throw ins.error;
+  S.me=ins.data;S.blob=null;S.sel=[];
+  await sign([S.me.photo_path]);
+  render();go('discover');
+ }catch(err){$('er').textContent=err.message;bt.disabled=false}
+}
+
+// ------------------------------------------------------------------ discover
+async function loadPeople(){
+ S.people=null;render();
+ let q=sb.from('profiles').select('*').neq('id',S.uid).order('created_at',{ascending:false}).limit(50);
+ if(S.fp!=='')q=q.eq('province',+S.fp);
+ if(S.q)q=q.ilike('username','%'+S.q.replace(/[%_\\]/g,'')+'%');
+ else if(S.me.goal==='date')q=q.eq('goal','date');
+ const {data,error}=await q;
+ if(error)throw error;
+ S.people=data||[];S.idx=0;
+ await sign(S.people.map(p=>p.photo_path));
+ if(S.tab==='discover'&&!S.open)render();
+}
+function discoverView(mn){
+ const flt=`<input id="us" placeholder="${t('usearch')}" value="${esc(S.q)}" autocapitalize="none" autocomplete="off" onkeydown="if(event.key==='Enter')setQ(this.value)" style="margin-bottom:8px"><select onchange="setFp(this.value)" style="margin-bottom:12px"><option value="">${t('allprov')}</option>${PROV.map((x,i)=>`<option value="${i}" ${S.fp!==''&&+S.fp===i?'selected':''}>${x[LI()]}</option>`).join('')}</select>`;
+ if(S.people===null){mn.innerHTML=flt+`<div class="empty">${t('loading')}</div>`;return}
+ if(!S.people.length){mn.innerHTML=flt+`<div class="empty">${t('done')}</div>`;return}
+ const p=S.people[S.idx%S.people.length];
+ const common=(p.interests||[]).filter(x=>S.me.interests.includes(x)).length;
+ mn.innerHTML=flt+`<div class="pcard"><div class="pic">${URLS[p.photo_path]?`<img src="${URLS[p.photo_path]}" alt="">`:'🙂'}</div><div class="pinfo"><h3>${esc(p.name)}, ${ageOf(p.birth_date)}</h3><div style="color:var(--mute);font-size:13px;margin-bottom:2px">@${esc(p.username)}</div><div style="color:var(--mute);font-size:14px">${goal(p.goal)}${p.grade?' · 🎓 '+grl(p.grade):''} · 📍 ${pl(p.province)}${common?` · ${common} ${t('common')}`:''}</div><div class="chips" style="margin-top:10px">${(p.interests||[]).map(i=>`<span class="chip ${S.me.interests.includes(i)?'on':''}">${il(i)}</span>`).join('')}</div></div></div>
+ <div class="acts"><button onclick="S.idx++;render()" title="skip">✕</button><button onclick="startChat('${p.id}')" title="chat">💬</button><button onclick="reportUser('${p.id}')" title="${t('report')}">🚩</button><button onclick="blockUser('${p.id}')" title="${t('block')}">🚫</button></div>`;
+}
+function setQ(v){S.q=v.trim().toLowerCase().replace(/^@/,'');loadPeople().catch(e=>toast(e.message))}
+function setFp(v){S.fp=v;loadPeople().catch(e=>toast(e.message))}
+async function startChat(id){
+ const peer=(S.people||[]).find(p=>p.id===id)||(S.chats||[]).map(c=>c.peer).find(p=>p.id===id);
+ const {data,error}=await sb.rpc('start_chat',{other:id});
+ if(error){toast(error.message);return}
+ S.chats=null;
+ openChat(data,peer);
+}
+
+// ------------------------------------------------------------------ chats
+async function loadChats(){
+ S.chats=null;render();
+ const {data:ch,error}=await sb.from('chats').select('id,user_a,user_b,created_at').order('created_at',{ascending:false});
+ if(error)throw error;
+ const ids=(ch||[]).map(c=>c.user_a===S.uid?c.user_b:c.user_a);
+ let ps=[];
+ if(ids.length){const r=await sb.from('profiles').select('*').in('id',ids);ps=r.data||[]}
+ await sign(ps.map(p=>p.photo_path));
+ S.chats=(ch||[]).map(c=>({id:c.id,peer:ps.find(p=>p.id===(c.user_a===S.uid?c.user_b:c.user_a))})).filter(c=>c.peer);
+ if(S.tab==='chats'&&!S.open)render();
+}
+function chatsView(mn){
+ if(S.chats===null){mn.innerHTML=`<div class="empty">${t('loading')}</div>`;return}
+ if(!S.chats.length){mn.innerHTML=`<div class="empty">${t('nochat')}</div>`;return}
+ mn.innerHTML=`<h2>${t('msgs')}</h2>`+S.chats.map((c,i)=>`<div class="row" onclick="openChatIdx(${i})">${avatar(c.peer)}<div><b>${esc(c.peer.name)}</b> <span style="color:var(--mute);font-size:12px">@${esc(c.peer.username)}</span></div></div>`).join('');
+}
+function openChatIdx(i){const c=S.chats[i];openChat(c.id,c.peer)}
+function leaveChat(){if(CH){sb.removeChannel(CH);CH=null}}
+async function openChat(chatId,peer){
+ leaveChat();
+ S.open={chatId,peer};S.tab='chats';S.msgs=[];render();
+ try{
+  const {data,error}=await sb.from('messages').select('*').eq('chat_id',chatId).order('created_at',{ascending:true}).limit(200);
+  if(error)throw error;
+  S.msgs=data||[];drawMsgs();
+  CH=sb.channel('chat-'+chatId).on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'chat_id=eq.'+chatId},p=>{
+   if(S.open&&S.open.chatId===chatId&&!S.msgs.some(m=>m.id===p.new.id)){S.msgs.push(p.new);drawMsgs()}
+  }).subscribe();
+ }catch(e){toast(e.message)}
+}
+function chatView(hd,mn){
+ const p=S.open.peer;
+ hd.innerHTML=`<div class="tools"><button class="back" onclick="go('chats')">←</button>${avatar(p,'av" style="width:34px;height:34px;font-size:18px')}<span style="color:var(--ink);font-size:16px">${esc(p.name)} <small style="color:var(--mute)">@${esc(p.username)}</small></span></div><div class="tools"><button onclick="reportUser('${p.id}')" title="${t('report')}">🚩</button><button onclick="blockUser('${p.id}')" title="${t('block')}">🚫</button></div>`;
+ mn.innerHTML=`<div class="chat"><div class="msgs" id="ms"></div><div class="send"><input id="tx" maxlength="1000" placeholder="${t('typemsg')}" onkeydown="if(event.key==='Enter')sendMsg()"><button onclick="sendMsg()">➤</button></div></div>`;
+ drawMsgs();
+}
+function drawMsgs(){
+ const ms=$('ms');if(!ms)return;
+ ms.innerHTML=S.msgs.map(m=>`<div class="m ${m.sender===S.uid?'me':''}">${esc(m.body)}</div>`).join('');
+ ms.scrollTop=ms.scrollHeight;
+}
+async function sendMsg(){
+ const inp=$('tx'),x=scrub(inp.value.trim());
+ if(!x||!S.open)return;
+ inp.value='';
+ const {data,error}=await sb.from('messages').insert({chat_id:S.open.chatId,body:x}).select().single();
+ if(error){toast(error.message);inp.value=x;return}
+ if(!S.msgs.some(m=>m.id===data.id)){S.msgs.push(data);drawMsgs()}
+}
+
+// ------------------------------------------------------------------ report / block / unblock
+async function reportUser(id){
+ const {error}=await sb.from('reports').insert({target_type:'profile',target_id:id,reason:'user_report'});
+ toast(error&&error.code!=='23505'?error.message:t('reported'));
+}
+async function blockUser(id){
+ if(!confirm(t('confirmBlock')))return;
+ const {error}=await sb.from('blocks').insert({blocked:id});
+ if(error&&error.code!=='23505'){toast(error.message);return}
+ toast(t('blocked'));
+ S.people=(S.people||[]).filter(p=>p.id!==id);S.chats=null;S.blocked=null;
+ if(S.open){S.open=null;leaveChat();go('chats')}else render();
+}
+async function unblockUser(id){
+ const {error}=await sb.from('blocks').delete().eq('blocked',id);
+ if(error){toast(error.message);return}
+ toast(t('unblocked'));S.chats=null;S.people=null;
+ await loadBlocked();
+}
+async function loadBlocked(){
+ S.blocked=null;render();
+ const {data,error}=await sb.rpc('my_blocked');
+ if(error)throw error;
+ S.blocked=data||[];
+ await sign(S.blocked.map(p=>p.photo_path));
+ if(S.tab==='me'&&!S.open)render();
+}
+
+// ------------------------------------------------------------------ me
+function meView(mn){
+ const p=S.me;
+ const bl=S.blocked&&S.blocked.length?`<label>${t('blockedList')}</label>`+S.blocked.map(b=>`<div class="row" style="cursor:default">${avatar(b)}<div style="flex:1"><b>${esc(b.name)}</b> <span style="color:var(--mute);font-size:12px">@${esc(b.username)}</span></div><button class="back" onclick="unblockUser('${b.id}')">${t('unblock')}</button></div>`).join(''):'';
+ mn.innerHTML=`<div class="pcard"><div class="pic">${URLS[p.photo_path]?`<img src="${URLS[p.photo_path]}" alt="">`:'🙂'}</div><div class="pinfo"><h3>${esc(p.name)}, ${ageOf(p.birth_date)}</h3><div style="color:var(--mute);font-size:13px">@${esc(p.username)}</div><div style="color:var(--mute);font-size:14px;margin-top:4px">📍 ${pl(p.province)} · ${goal(p.goal)}${p.grade?' · 🎓 '+grl(p.grade):''}</div><div class="chips" style="margin-top:12px">${(p.interests||[]).map(i=>`<span class="chip on">${il(i)}</span>`).join('')}</div></div></div>
+ ${bl}
+ <label>${t('lang')}</label><div style="display:flex;gap:8px"><button class="btn ${S.lang==='km'?'':'o'}" style="margin:0" onclick="setLang('km')">🇰🇭 ខ្មែរ</button><button class="btn ${S.lang==='en'?'':'o'}" style="margin:0" onclick="setLang('en')">🇬🇧 English</button></div>
+ <button class="btn o" onclick="sb.auth.signOut()">${t('logout')}</button>`;
+}
+
+init();
+</script>
+</body>
+</html>
